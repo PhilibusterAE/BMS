@@ -1,0 +1,95 @@
+function main(workbook: ExcelScript.Workbook) {
+	const selectedSheet = workbook.getActiveWorksheet();
+//Few minor adjustments to raw RTMS data to make it more usable
+	selectedSheet.getRange("1:1").unmerge();
+	selectedSheet.getRange("B1").copyFrom(selectedSheet.getRange("A1"), ExcelScript.RangeCopyType.all, false, false);
+	selectedSheet.getRange("2:2").delete(ExcelScript.DeleteShiftDirection.up);
+	selectedSheet.getRange("A:A").delete(ExcelScript.DeleteShiftDirection.left);
+	selectedSheet.getRange().getFormat().getFont().setName("Calibri");
+//Set variables
+	const usedRange = selectedSheet.getUsedRange();
+	const values = usedRange.getValues();
+	const wordsToKeep = ["Lot Number", "Activity", "Start Date", "EQP_Chosen_1", "Site of Care Country", "Lot Type"];
+//Iterate through columns and delete if value in row 1 is not listed in variable [wordsToKeep], add column headers to this variable list above to keep the columns if adding new functionality using data from there. Only impacted function below should be the hide unwanted columns step below, simply increase this reange to include the newly retained columns
+	for (let colIndex = values[0].length - 1; colIndex >= 0; colIndex--) {
+		const columnHeader = String(values[0][colIndex]);
+		if (!wordsToKeep.some(word => columnHeader.includes(word))) {
+			usedRange.getColumn(colIndex).delete(ExcelScript.DeleteShiftDirection.left);
+		}
+	}
+//Convert to table
+	let newTable = workbook.addTable(usedRange,true);
+//Add new columns to reformt raw RTMS data into more desirable form
+	//Column1 Start Date T/F Filter. "+0.708333" = today at 1700, "+1.708333" = tomorrow at 1700
+	selectedSheet.getRange("G2").setFormulaLocal('=IF([@[Start Date]]<=TODAY()+0.708333,TRUE,FALSE)');
+	//Column2 Equipment ID helper column
+	selectedSheet.getRange("H2").setFormulaLocal('=CONCAT([@Activity],"/",[@[Lot Number]])')
+	//Column3 Lot Number
+	selectedSheet.getRange("I2").setFormulaLocal('=[@[Lot Number]]');
+	//Column4 Activity/Operation	
+	selectedSheet.getRange("J2").setFormulaLocal('=IFS([@Activity]="Xuri Prep","Xuri Prep/Inoc + 0",[@Activity]="Cryo - Harvest","CDP",OR(LEFT([@Activity],5)="CD4 C",LEFT([@Activity],5)="CD8 C"),"CMAT",[@Activity]="Incubation","CMAT Pull",AND([@Activity]="Activation",[@[Site of Care Country]]="United States",[@[Lot Type]]<>"Clinical"),"Activation US",AND([@Activity]="Activation",[@[Site of Care Country]]<>"United States",[@[Lot Type]]<>"Clinical"),"Activation Foreign",[@[Lot Type]]="Clinical","Activation Clinical",TRUE,[@Activity])');
+	//Column5 Location
+	selectedSheet.getRange("K2").setFormulaLocal('=IFS(OR([@Activity]="CD8 Selection",[@Activity]="CD4 Selection"),"Day0 - "&MID([@[EQP_Chosen_1]],5,1)&RIGHT([@[EQP_Chosen_1]],1),OR([@Activity]="Activation",[@Activity]="Transduction",[@Activity]="Debead"),[@[EQP_Chosen_1]],OR([@Activity]="Cryo - Harvest",MID([@Activity],5,4)="Cryo",[@Activity]="Incubation"),"CRYO",OR([@Activity]="Xuri Prep",[@Activity]="Expansion",LEFT([@Activity],4)="Inoc",[@Activity]="Pre-Harvest",[@Activity]="Harvest"),LEFT([@[EQP_Chosen_1]],4))');
+	//Column6 Start Date
+	selectedSheet.getRange("L2").setFormulaLocal('=IFS([@Activity]="Incubation",[@[Start Date]]-0.0625,TRUE,[@[Start Date]])');
+	//Column7 Equipment ID
+	selectedSheet.getRange("M2").setFormulaLocal('=IFS([@Activity]="Xuri Prep",RIGHT([@[EQP_Chosen_1]],9),[@Activity]="Activation",RIGHT(XLOOKUP("Incubation/"&[@[Lot Number]],[Column2],[EQP_Chosen_1],FALSE,0,1),11),TRUE,"")');
+//Apply filters to newtable
+	newTable.getColumnByName("Column4").getFilter().applyValuesFilter(["CD8 Selection","CD4 Selection","CMAT","Activation US","Activation Foreign","Activation Clinical","CMAT Pull","Transduction","Xuri Prep/Inoc + 0","Debead","Inoc + 1","Inoc + 2","Inoc + 3","Inoc + 4","Inoc + 5","Inoc + 6","Inoc + 7","Inoc + 8","Inoc + 9","Inoc + 10","Inoc + 11","Inoc + 12","Inoc + 13","Inoc + 14","Inoc + 15","Pre-Harvest","Harvest","CDP"]);
+	newTable.getColumnByName("Column1").getFilter().applyValuesFilter(["TRUE"]);
+//Hide all columns we don't want copied to final table
+	selectedSheet.getRange("A:H").setColumnHidden(true);
+	let sheet1 = workbook.addWorksheet();
+	let visibleRange = newTable.getRange().getVisibleView();
+	let visibleValues = visibleRange.getValues();
+	let pasteSheet = workbook.getWorksheet('Sheet1');
+	let numRows = visibleValues.length;
+	let numCols = (numRows > 0) ? visibleValues[0].length : 0;
+	let pasteRange = pasteSheet.getRange(`A1:${String.fromCharCode(65 + numCols - 1)}${numRows}`);
+	pasteRange.setValues(visibleValues);
+	selectedSheet.delete();
+	sheet1.getRange("D:D").setNumberFormatLocal("dmmmyyyy h:mm");
+	sheet1.getRange("A1").setValue("Lot");
+	sheet1.getRange("B1").setValue("Operation");
+	sheet1.getRange("C1").setValue("Location");
+	sheet1.getRange("D1").setValue("Time");
+	sheet1.getRange("E1").setValue("EQ #");
+	sheet1.getRange("A:E").getFormat().autofitColumns();
+	const usedRange2 = sheet1.getUsedRange();
+	let table1 = sheet1.addTable(usedRange2,true);
+}
+
+
+
+
+//Update dropdown lists and formatting/calcs to match spelling used by RTMS
+//Add clinimacs breaks? (stations DAY0 - 1/2C (A/B?)
+//Use Integrated TNC to auto determine AM INOCs
+//Harvest Criteria met to filter out unnecessary INOCs (should have a matching preharvest/harvest etnry in addition)
+//find way to custom sort so data is split same way as current schedule with Cryo stuff then Selection then Make 2 Ops, custom sort options with no spacing OR sequentially filter out each group, paste to next sheet, find length, add a few rows, then re-filter and repaste starting at the dynamically created starting cell from the length + buffer 
+//Need to make sure lot type for clinical is entered correcly and doesn't show up differntly in RTMS thna just "Clinical" like I've assumed inthe code
+//[Scheduler Comments] for MVP in format 'BT###### MVP # of #
+//Verify this format will be consistent on all ops
+//What multiple to use for selecting AM INOCS (4x? more/less?)
+//[Lot Type] Possible entries: 'Commercial', 'NHU Commercial', 'Clinical NHU'
+//Update formula to CONTAINS('Commercial/Clinical) to account for additions/changes to entries
+//Harvest Criteria Met column to filter out INOCs that are actually preharvests (or maybe include conditon to check if duplicate entry exists for the lot labeled as Pre-Harvest and delete IOC based on that, need ot learn more about how this is being handled. Are tenative harvests added in advance the way they are on current schedule based on the possibility the lot goes to harvest or only after the criteria has been met?
+//add verison numbers to the filename so it's easier to maange keeping everyone updated
+//possibly add number to start time for xuri preps (1,2,3,etc) setup initially to just run up to like 6 or 8 or something before figuring out how ot dynamically number regardless of quantity
+//posssibly add media seleector/add media column
+
+
+//Questions for scheudling
+//		How will we verify MVP?
+//		Is there a way to get reports auto-emailed
+//		How to determine which ops belong to day vs night shift, esp. INOCs (What TNC?)
+//		Will Integrated TNC be updated for all INOCs
+//		Why not all INOCs have integrated TNC
+
+
+
+
+
+
+
+
