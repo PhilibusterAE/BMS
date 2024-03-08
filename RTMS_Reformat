@@ -59,9 +59,6 @@ function main(workbook: ExcelScript.Workbook) {
 	let table1 = sheet1.addTable(usedRange2,true);
 }
 
-
-
-
 //Update dropdown lists and formatting/calcs to match spelling used by RTMS
 //Add clinimacs breaks? (stations DAY0 - 1/2C (A/B?)
 //Use Integrated TNC to auto determine AM INOCs
@@ -78,18 +75,9 @@ function main(workbook: ExcelScript.Workbook) {
 //possibly add number to start time for xuri preps (1,2,3,etc) setup initially to just run up to like 6 or 8 or something before figuring out how ot dynamically number regardless of quantity
 //posssibly add media seleector/add media column
 
-
 //Questions for scheudling
 //		How will we verify MVP?
 //		Is there a way to get reports auto-emailed
 //		How to determine which ops belong to day vs night shift, esp. INOCs (What TNC?)
 //		Will Integrated TNC be updated for all INOCs
 //		Why not all INOCs have integrated TNC
-
-
-
-
-
-
-
-
