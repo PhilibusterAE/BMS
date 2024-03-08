@@ -75,7 +75,7 @@ function main(workbook: ExcelScript.Workbook) {
 //possibly add number to start time for xuri preps (1,2,3,etc) setup initially to just run up to like 6 or 8 or something before figuring out how ot dynamically number regardless of quantity
 //posssibly add media seleector/add media column
 
-//Questions for scheudling
+//Questions for scheduling
 //		How will we verify MVP?
 //		Is there a way to get reports auto-emailed
 //		How to determine which ops belong to day vs night shift, esp. INOCs (What TNC?)
