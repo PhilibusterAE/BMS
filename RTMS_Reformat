@@ -27,7 +27,7 @@ function main(workbook: ExcelScript.Workbook) {
 	//Column3 Lot Number
 	selectedSheet.getRange("I2").setFormulaLocal('=[@[Lot Number]]');
 	//Column4 Activity/Operation	
-	selectedSheet.getRange("J2").setFormulaLocal('=IFS([@Activity]="Xuri Prep","Xuri Prep/Inoc + 0",[@Activity]="Cryo - Harvest","CDP",OR(LEFT([@Activity],5)="CD4 C",LEFT([@Activity],5)="CD8 C"),"CMAT",[@Activity]="Incubation","CMAT Pull",AND([@Activity]="Activation",[@[Site of Care Country]]="United States",[@[Lot Type]]<>"Clinical"),"Activation US",AND([@Activity]="Activation",[@[Site of Care Country]]<>"United States",[@[Lot Type]]<>"Clinical"),"Activation Foreign",[@[Lot Type]]="Clinical","Activation Clinical",TRUE,[@Activity])');
+	selectedSheet.getRange("J2").setFormulaLocal('=IFS([@Activity]="Xuri Prep","Xuri Prep/Inoc + 0",[@Activity]="Cryo - Harvest","CDP",OR(LEFT([@Activity],5)="CD4 C",LEFT([@Activity],5)="CD8 C"),"CMAT",[@Activity]="Incubation","CMAT Pull",AND([@Activity]="Activation",[@[Site of Care Country]]="United States",LEFT([@[Lot Type]],8)<>"Clinical"),"Activation US",AND([@Activity]="Activation",[@[Site of Care Country]]<>"United States",LEFT([@[Lot Type]],8)<>"Clinical"),"Activation Foreign",LEFT([@[Lot Type]],8)="Clinical","Activation Clinical",TRUE,[@Activity])');
 	//Column5 Location
 	selectedSheet.getRange("K2").setFormulaLocal('=IFS(OR([@Activity]="CD8 Selection",[@Activity]="CD4 Selection"),"Day0 - "&MID([@[EQP_Chosen_1]],5,1)&RIGHT([@[EQP_Chosen_1]],1),OR([@Activity]="Activation",[@Activity]="Transduction",[@Activity]="Debead"),[@[EQP_Chosen_1]],OR([@Activity]="Cryo - Harvest",MID([@Activity],5,4)="Cryo",[@Activity]="Incubation"),"CRYO",OR([@Activity]="Xuri Prep",[@Activity]="Expansion",LEFT([@Activity],4)="Inoc",[@Activity]="Pre-Harvest",[@Activity]="Harvest"),LEFT([@[EQP_Chosen_1]],4))');
 	//Column6 Start Date
@@ -59,6 +59,24 @@ function main(workbook: ExcelScript.Workbook) {
 	let table1 = sheet1.addTable(usedRange2,true);
 }
 
+//posssibly add media seleector/add media column, multiple columns for comment seciton the nadd final column and CONCAT the all for copy/paste
+	selectedSheet.getRange("N2").setFormulaLocal('=IFS(
+	AND(LEFT([@[Column4]],10)="Activation",[@[Arm]]="CD4"),"Media A 1100",
+	AND(LEFT([@[Column4]],10)="Activation",[@[Arm]]="CD8"),"Media E 1100",
+	AND([@[Column4]]="Transduction",[@[Arm]]="CD4"),"Media A 400",
+	AND([@[Column4]]="Transduction",[@[Arm]]="CD8"),"Media E 400",
+	AND(OR([@[Column4]]="Debead",[@[Column4]]="Xuri Prep/Inoc + 0"),[@[Arm]]="CD4"),"Media B",
+	AND(OR([@[Column4]]="Debead",[@[Column4]]="Xuri Prep/Inoc + 0"),[@[Arm]]="CD8"),"Media F",
+	TRUE,""
+	)')
+
+
+	// Activaiton - 		A 1100 / E 1100
+	// Transduction - 		A 400  / E 400
+	// Debead/Xuri Prep - 	B 	   / F
+
+
+
 //Update dropdown lists and formatting/calcs to match spelling used by RTMS
 //Add clinimacs breaks? (stations DAY0 - 1/2C (A/B?)
 //Use Integrated TNC to auto determine AM INOCs
@@ -68,12 +86,12 @@ function main(workbook: ExcelScript.Workbook) {
 //[Scheduler Comments] for MVP in format 'BT###### MVP # of #
 //Verify this format will be consistent on all ops
 //What multiple to use for selecting AM INOCS (4x? more/less?)
-//[Lot Type] Possible entries: 'Commercial', 'NHU Commercial', 'Clinical NHU'
-//Update formula to CONTAINS('Commercial/Clinical) to account for additions/changes to entries
+//[Lot Type] Possible entries: 'Commercial', 'NHU Commercial', 'Clinical NHU', 'Clinical' -> Might be done? Updatesd formula but need to verify it works with new formulas
+	//Update formula to CONTAINS('Commercial/Clinical) to account for additions/changes to entries
 //Harvest Criteria Met column to filter out INOCs that are actually preharvests (or maybe include conditon to check if duplicate entry exists for the lot labeled as Pre-Harvest and delete IOC based on that, need ot learn more about how this is being handled. Are tenative harvests added in advance the way they are on current schedule based on the possibility the lot goes to harvest or only after the criteria has been met?
-//add verison numbers to the filename so it's easier to maange keeping everyone updated
+//add verison numbers to the filename so it's easier to maange keeping everyone updated & move to shared folder on Onedrive: Shared Documents > Quad 3 > Miscellaeous > ???
 //possibly add number to start time for xuri preps (1,2,3,etc) setup initially to just run up to like 6 or 8 or something before figuring out how ot dynamically number regardless of quantity
-//posssibly add media seleector/add media column
+
 
 //Questions for scheduling
 //		How will we verify MVP?
