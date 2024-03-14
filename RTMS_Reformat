@@ -66,16 +66,12 @@ function main(workbook: ExcelScript.Workbook) {
 	AND([@[Column4]]="Transduction",[@[Arm]]="CD4"),"Media A 400",
 	AND([@[Column4]]="Transduction",[@[Arm]]="CD8"),"Media E 400",
 	AND(OR([@[Column4]]="Debead",[@[Column4]]="Xuri Prep/Inoc + 0"),[@[Arm]]="CD4"),"Media B",
-	AND(OR([@[Column4]]="Debead",[@[Column4]]="Xuri Prep/Inoc + 0"),[@[Arm]]="CD8"),"Media F",
-	TRUE,""
+	AND(OR([@[Column4]]="Debead",[@[Column4]]="Xuri Prep/Inoc + 0"),[@[Arm]]="CD8"),"Media F",TRUE,""
 	)')
-
 
 	// Activaiton - 		A 1100 / E 1100
 	// Transduction - 		A 400  / E 400
 	// Debead/Xuri Prep - 	B 	   / F
-
-
 
 //Update dropdown lists and formatting/calcs to match spelling used by RTMS
 //Add clinimacs breaks? (stations DAY0 - 1/2C (A/B?)
@@ -91,7 +87,6 @@ function main(workbook: ExcelScript.Workbook) {
 //Harvest Criteria Met column to filter out INOCs that are actually preharvests (or maybe include conditon to check if duplicate entry exists for the lot labeled as Pre-Harvest and delete IOC based on that, need ot learn more about how this is being handled. Are tenative harvests added in advance the way they are on current schedule based on the possibility the lot goes to harvest or only after the criteria has been met?
 //add verison numbers to the filename so it's easier to maange keeping everyone updated & move to shared folder on Onedrive: Shared Documents > Quad 3 > Miscellaeous > ???
 //possibly add number to start time for xuri preps (1,2,3,etc) setup initially to just run up to like 6 or 8 or something before figuring out how ot dynamically number regardless of quantity
-
 
 //Questions for scheduling
 //		How will we verify MVP?
