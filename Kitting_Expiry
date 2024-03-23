@@ -1,0 +1,6 @@
+Consolidated flow w/ seperate branches for each team.
+    Add all three branches to single flow that updates daily schdule with CPF materials, kitting channel excel file with kitting stuff, and posts teams message.
+    report pulls all locations
+    CPF branch filters CPF locations
+    Kitting brnach filters Kitting locations
+    Both branches Update_Row for respective tables
