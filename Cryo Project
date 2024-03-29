@@ -1,0 +1,52 @@
+Manufacturing - Inventory (Real Time) - EVALUATE('APPS.FND_TIMEZONES_PVT.ADJUST_DATETIME(%1,''America/New_York'', ''PST'')',   "Manufacturing - Inventory (Real Time)"."Inventory Transactions"."Expiration Date"   )
+Real Time Manufacturing Analytics - EVALUATE('APPS.FND_TIMEZONES_PVT.ADJUST_DATETIME(%1,''America/New_York'', ''PST'')', CAST ( "Fact - Attributes/Measures"."Expiration Date"  as TIMESTAMP)  )
+
+
+
+  8.1.3. Frame and rack slots are defined in Oracle as storage locations within LN2
+Storage Freezers. The following naming convention has been established for
+frames and racks:
+Size Start End Slot Positions
+7-Place Frame 1000 1999 A-G
+5-Place Rack 2000 2999 A-E
+8.1.4. An example of 5-Place Rack can be seen in the table below:
+Frame Number Slot Position Barcode Value and Oracle Location
+2001 A 2001A
+2001 B 2001B
+2001 C 2001C
+
+
+
+SELECT [Lot number]
+FROM [Table name]
+GROUP BY [Lot number]
+HAVING COUNT(*) >= 13 
+AND SUM(IIF([Process step] IN (1,2,3,4,5,6,7,8,9,10,18,19,20), 1, 0)) = 13 
+AND SUM(IIF([Process step] = 11, 1, 0)) + SUM(IIF([Process step] = 12 
+  AND [Lot number] 
+  NOT IN (
+    SELECT [Lot number] 
+    FROM [Table name] 
+    WHERE [Process step] = 11), 1, 0)) + SUM(IIF([Process step] = 13 
+      AND [Lot number] 
+        NOT IN (
+          SELECT [Lot number] 
+          FROM [Table name] 
+          WHERE [Process step] IN (11,12)), 1, 0)) + SUM(IIF([Process step] = 14 
+          AND [Lot number] NOT IN (
+            SELECT [Lot number] 
+            FROM [Table name] 
+            WHERE [Process step] IN (11,12,13)), 1, 0)) + SUM(IIF([Process step] = 15 
+            AND [Lot number] NOT IN (
+              SELECT [Lot number] 
+              FROM [Table name] 
+              WHERE [Process step] IN (11,12,13,14)), 1, 0)) + SUM(IIF([Process step] = 16 
+              AND [Lot number] NOT IN (
+                SELECT [Lot number] 
+                FROM [Table name] 
+                WHERE [Process step] IN (11,12,13,14,15)), 1, 0)) + SUM(IIF([Process step] = 17 
+                AND [Lot number] NOT IN (
+                  SELECT [Lot number] 
+                  FROM [Table name] 
+                  WHERE [Process step] IN (11,12,13,14,15,16)), 1, 0)) <= 1;
+
